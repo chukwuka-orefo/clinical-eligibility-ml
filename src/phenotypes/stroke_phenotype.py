@@ -146,7 +146,7 @@ def _aggregate_to_admission(df):
     # Stroke density (signal strength proxy)
     phenotype["stroke_code_density"] = (
         phenotype["stroke_code_count"]
-        / phenotype["total_diagnosis_count"].replace(0, pd.NA)
+        / phenotype["total_diagnosis_count"].replace(0, float("nan"))
     ).fillna(0.0)
 
     # Binary stroke signal flag

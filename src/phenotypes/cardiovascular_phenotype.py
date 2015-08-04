@@ -145,7 +145,7 @@ def _aggregate_to_admission(df):
     # Cardiovascular density (contextual burden proxy)
     phenotype["cardiovascular_code_density"] = (
         phenotype["cardiovascular_code_count"]
-        / phenotype["total_diagnosis_count"].replace(0, pd.NA)
+        / phenotype["total_diagnosis_count"].replace(0, float("nan"))
     ).fillna(0.0)
 
     # Binary cardiovascular signal flag
