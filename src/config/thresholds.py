@@ -18,15 +18,15 @@ All heuristic rules must reference thresholds defined here so that:
 # ---------------------------------------------------------------------
 
 # Minimum age for inclusion in adult stroke trials
-MIN_ELIGIBLE_AGE: int = 18
+MIN_ELIGIBLE_AGE = 18
 
 # Upper age bound for standard inclusion
 # Chosen to be permissive and recall-oriented
-MAX_ELIGIBLE_AGE: int = 85
+MAX_ELIGIBLE_AGE = 85
 
 # Hard exclusion age
 # Admissions above this age are excluded entirely
-MAX_EXCLUSION_AGE: int = 90
+MAX_EXCLUSION_AGE = 90
 
 
 # ---------------------------------------------------------------------
@@ -35,11 +35,11 @@ MAX_EXCLUSION_AGE: int = 90
 
 # Minimum number of stroke-related diagnosis codes
 # required to consider an admission as having a stroke signal
-MIN_STROKE_CODE_COUNT: int = 1
+MIN_STROKE_CODE_COUNT = 1
 
 # Whether primary diagnosis stroke signal should be preferred
 # (used for analysis, not enforced as a hard rule)
-PREFER_PRIMARY_STROKE_DIAGNOSIS: bool = True
+PREFER_PRIMARY_STROKE_DIAGNOSIS = True
 
 
 # ---------------------------------------------------------------------
@@ -48,7 +48,7 @@ PREFER_PRIMARY_STROKE_DIAGNOSIS: bool = True
 
 # Minimum number of cardiovascular diagnosis codes
 # to flag supporting cardiovascular context
-MIN_CVD_CODE_COUNT: int = 1
+MIN_CVD_CODE_COUNT = 1
 
 
 # ---------------------------------------------------------------------
@@ -57,7 +57,7 @@ MIN_CVD_CODE_COUNT: int = 1
 
 # Whether emergency admissions are preferred over elective
 # (elective inclusion controlled in settings.py)
-PREFER_EMERGENCY_ADMISSIONS: bool = True
+PREFER_EMERGENCY_ADMISSIONS = True
 
 
 # ---------------------------------------------------------------------
@@ -74,5 +74,5 @@ DEFAULT_SCREENING_K_VALUES = [25, 50, 100, 200]
 # ---------------------------------------------------------------------
 
 # Absolute lower and upper bounds for derived age values
-MIN_POSSIBLE_AGE: int = 0
-MAX_POSSIBLE_AGE: int = 120
+MIN_POSSIBLE_AGE = 0
+MAX_POSSIBLE_AGE = 120

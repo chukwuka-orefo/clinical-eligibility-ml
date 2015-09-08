@@ -20,7 +20,6 @@ This module MUST NOT:
 - Apply eligibility or modelling logic
 """
 
-from typing import List
 import pandas as pd
 
 from utils.checks import (
@@ -33,7 +32,7 @@ from utils.checks import (
 # Public API
 # ---------------------------------------------------------------------
 
-def build_admission_features(df: pd.DataFrame) -> pd.DataFrame:
+def build_admission_features(df):
     """
     Build admission-context features for modelling.
 
@@ -83,7 +82,7 @@ def build_admission_features(df: pd.DataFrame) -> pd.DataFrame:
 # Feature metadata (optional)
 # ---------------------------------------------------------------------
 
-def get_admission_feature_names() -> List[str]:
+def get_admission_feature_names():
     """
     Return the list of admission-context feature column names.
 
