@@ -20,7 +20,6 @@ This module MUST NOT:
 - Make assumptions about specific trial protocols
 """
 
-# Removed typing imports for Python 3.4 compatibility
 
 
 # ---------------------------------------------------------------------

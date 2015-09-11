@@ -21,7 +21,6 @@ This module MUST NOT:
 - Access data files
 """
 
-# Removed typing imports (not allowed in Python 3.4)
 
 
 # ---------------------------------------------------------------------
