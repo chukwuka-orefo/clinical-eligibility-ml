@@ -1,0 +1,79 @@
+#config/study_config.yaml
+# ---------------------------------------------------------------------
+# Study configuration for clinical trial eligibility screening
+# ---------------------------------------------------------------------
+# This file defines study-specific eligibility parameters.
+#
+# It is intended to be edited by research or clinical staff.
+# No Python code changes are required when modifying this file.
+#
+# Defaults reflect conservative stroke trial screening criteria
+# used in secondary-care settings.
+# ---------------------------------------------------------------------
+
+study:
+  name: "default_stroke_trial"
+  description: "Default eligibility configuration for stroke-related trials"
+  version: "1.0"
+  created: "2015-09-25"
+
+# ---------------------------------------------------------------------
+# Age criteria
+# ---------------------------------------------------------------------
+age:
+  min: 18          # Minimum eligible age (years)
+  max: 85          # Upper age bound for standard inclusion
+  hard_exclude: 90 # Absolute exclusion threshold
+
+# ---------------------------------------------------------------------
+# Stroke signal criteria
+# ---------------------------------------------------------------------
+stroke_signal:
+  min_code_count: 1        # Minimum number of stroke-related diagnosis codes
+  require_any_signal: true # Require at least one stroke signal
+  prefer_primary_dx: true  # Prefer (but do not require) primary stroke diagnosis
+
+# ---------------------------------------------------------------------
+# Cardiovascular context (supporting signal only)
+# ---------------------------------------------------------------------
+cardiovascular_context:
+  min_code_count: 1        # Minimum CVD-related codes to flag context
+  required: false          # CVD context is not mandatory for eligibility
+
+# ---------------------------------------------------------------------
+# Admission context
+# ---------------------------------------------------------------------
+admission:
+  emergency_only: false    # If true, restrict to emergency admissions only
+
+# ---------------------------------------------------------------------
+# Machine learning score thresholds (optional)
+# ---------------------------------------------------------------------
+ml_scoring:
+  enabled: false           # If false, ML score is not used for filtering
+  min_score: 0.0           # Minimum ML score to consider eligible
+
+# ---------------------------------------------------------------------
+# Exclusion rules
+# ---------------------------------------------------------------------
+exclusions:
+  exclude_without_stroke_signal: true
+  exclude_if_age_above_hard_limit: true
+
+# ---------------------------------------------------------------------
+# Screening and reporting defaults
+# ---------------------------------------------------------------------
+screening:
+  default_k_values:
+    - 25
+    - 50
+    - 100
+    - 200
+
+# ---------------------------------------------------------------------
+# Notes
+# ---------------------------------------------------------------------
+# - This configuration defines study-specific behaviour only.
+# - Core clinical logic and ML models are unchanged.
+# - Different studies should use different YAML files.
+# ---------------------------------------------------------------------
