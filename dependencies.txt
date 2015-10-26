@@ -1,0 +1,16 @@
+Runtime assumptions (2015-era)
+
+Python:
+  - WinPython 3.4.x (64-bit)
+
+Core libraries:
+  - flask >= 0.10
+  - pandas >= 0.16
+  - numpy >= 1.9
+  - scikit-learn >= 0.16
+  - pyyaml >= 3.11
+
+Notes:
+- All dependencies are expected to be bundled with WinPython.
+- No system-wide installation is required.
+- No internet access is assumed at runtime.
