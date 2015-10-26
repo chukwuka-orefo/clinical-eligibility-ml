@@ -22,3 +22,4 @@ __pycache__/
 
 # Files
 /src/scaffold_src.sh
+app/engine/scaffold_src.sh
