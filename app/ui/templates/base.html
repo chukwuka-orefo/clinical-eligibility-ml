@@ -3,11 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Clinical Eligibility Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <style>
+        body { padding-top: 30px; }
+        .footer-note { margin-top: 30px; color: #777; font-size: 12px; }
+    </style>
 </head>
 <body>
     <div class="container">
         {% block content %}{% endblock %}
+        <div class="footer-note">
+            <p>
+                This tool supports eligibility screening only.
+                All outputs require clinical review.
+            </p>
+        </div>
     </div>
 </body>
 </html>

@@ -1,24 +1,36 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Clinical Eligibility Tool</h2>
+<div class="page-header">
+    <h2>Clinical Eligibility Tool</h2>
+</div>
 
-<p>
-    This tool supports trial eligibility screening in secondary-care
-    clinical research settings.
+<p class="lead">
+    Supports batch screening and prioritisation of patients
+    for clinical trial eligibility in secondary-care settings.
 </p>
 
 <form action="{{ url_for('run') }}" method="get">
-    <button type="submit">Run eligibility screening</button>
+    <button type="submit" class="btn btn-primary btn-lg">
+        Run eligibility screening
+    </button>
 </form>
 
 {% if result %}
 <hr>
-<h3>Run complete</h3>
-<ul>
-    <li><strong>Study:</strong> {{ result.study_name }}</li>
-    <li><strong>Records processed:</strong> {{ result.record_count }}</li>
-    <li><strong>Output file:</strong> {{ result.output_file }}</li>
-</ul>
+
+<div class="panel panel-success" style="margin-top:20px;">
+    <div class="panel-heading">
+        <strong>Run complete</strong>
+    </div>
+    <div class="panel-body">
+        <ul class="list-unstyled">
+            <li><strong>Study:</strong> {{ result.study_name }}</li>
+            <li><strong>Records processed:</strong> {{ result.record_count }}</li>
+            <li><strong>Output file:</strong> {{ result.output_file }}</li>
+            <li><strong>Mode:</strong> {{ result.mode }}</li>
+        </ul>
+    </div>
+</div>
 {% endif %}
 {% endblock %}
