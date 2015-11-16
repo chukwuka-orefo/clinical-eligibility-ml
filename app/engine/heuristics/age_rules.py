@@ -27,7 +27,7 @@ from app.engine.config.thresholds import (
     MAX_ELIGIBLE_AGE,
     MAX_EXCLUSION_AGE,
 )
-from utils.checks import (
+from app.engine.utils.checks import (
     require_columns,
     require_numeric,
 )
