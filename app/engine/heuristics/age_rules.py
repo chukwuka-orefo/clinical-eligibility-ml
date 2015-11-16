@@ -22,7 +22,7 @@ This module MUST NOT:
 
 import pandas as pd
 
-from config.thresholds import (
+from app.engine.config.thresholds import (
     MIN_ELIGIBLE_AGE,
     MAX_ELIGIBLE_AGE,
     MAX_EXCLUSION_AGE,
