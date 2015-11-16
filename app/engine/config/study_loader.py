@@ -24,7 +24,7 @@ from pathlib import Path
 
 import yaml
 
-from utils.checks import require_columns
+from app.engine.utils.checks import require_columns
 
 
 # ---------------------------------------------------------------------
