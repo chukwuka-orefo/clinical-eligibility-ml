@@ -24,16 +24,16 @@ from pathlib import Path
 
 import pandas as pd
 
-from config.paths import (
+from app.engine.config.paths import (
     PROCESSED_FEATURES_PATH,
     PROCESSED_DATA_DIR,
     ensure_directories,
 )
-from models.logistic_regression import (
+from app.engine.models.logistic_regression import (
     train_logistic_regression,
 )
-from config.settings import LOG_LEVEL
-from utils.logging import get_logger
+from app.engine.config.settings import LOG_LEVEL
+from app.engine.utils.logging import get_logger
 
 
 LOGGER = get_logger(__name__, LOG_LEVEL)
