@@ -25,8 +25,8 @@ import numpy as np
 
 from sklearn.linear_model import LogisticRegression
 
-from config.settings import LOG_LEVEL
-from utils.logging import get_logger
+from app.engine.config.settings import LOG_LEVEL
+from app.engine.utils.logging import get_logger
 
 
 LOGGER = get_logger(__name__, LOG_LEVEL)
