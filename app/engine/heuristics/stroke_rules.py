@@ -22,11 +22,11 @@ This module MUST NOT:
 
 import pandas as pd
 
-from config.thresholds import (
+from app.engine.config.thresholds import (
     MIN_STROKE_CODE_COUNT,
     PREFER_PRIMARY_STROKE_DIAGNOSIS,
 )
-from utils.checks import (
+from app.engine.utils.checks import (
     require_columns,
     require_numeric,
     require_boolean,
