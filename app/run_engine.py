@@ -25,12 +25,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from engine.config.study_loader import load_study_config
-from engine.heuristics.age_rules import apply_age_rules
-from engine.heuristics.stroke_rules import apply_stroke_rules
-from engine.heuristics.exclusion_rules import apply_exclusion_rules
-from engine.models.train import train_models
-
+from app.engine.config.study_loader import load_study_config
+from app.engine.heuristics.age_rules import apply_age_rules
+from app.engine.heuristics.stroke_rules import apply_stroke_rules
+from app.engine.heuristics.exclusion_rules import apply_exclusion_rules
+from app.engine.models.train import train_models
 
 # ---------------------------------------------------------------------
 # Public API
