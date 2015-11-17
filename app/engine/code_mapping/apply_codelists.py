@@ -26,7 +26,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from config.paths import (
+from app.engine.config.paths import (
     DIAGNOSES_INTERIM_PATH,
     INTERIM_DATA_DIR,
     ensure_directories,

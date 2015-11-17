@@ -23,8 +23,8 @@ This module MUST NOT:
 import pandas as pd
 
 from evaluation.ranking import evaluate_ranking
-from config.thresholds import DEFAULT_SCREENING_K_VALUES
-from utils.checks import (
+from app.engine.config.thresholds import DEFAULT_SCREENING_K_VALUES
+from app.engine.utils.checks import (
     require_columns,
     require_boolean,
     require_probability,

@@ -1,4 +1,4 @@
-# run_engine.py
+# app/run_engine.py
 """
 run_engine.py
 
@@ -22,6 +22,7 @@ This module MUST:
 """
 
 from pathlib import Path
+from shutil import copyfile
 
 import pandas as pd
 
@@ -31,17 +32,51 @@ from app.engine.heuristics.stroke_rules import apply_stroke_rules
 from app.engine.heuristics.exclusion_rules import apply_exclusion_rules
 from app.engine.models.train import train_models
 from app.engine.features.build_feature_matrix import build_feature_matrix
-from app.engine.config.paths import PROCESSED_FEATURES_PATH
 from app.engine.ingestion.run_ingestion import run_ingestion
-from app.engine.config.paths import INTERIM_DATA_DIR
+from app.engine.config.paths import (
+    PROCESSED_FEATURES_PATH,
+    INTERIM_DATA_DIR,
+)
+from app.engine.data.reference import REFERENCE_DATA_DIR
+from app.engine.utils.logging import get_logger
+from app.engine.config.settings import LOG_LEVEL
+
+
+# ---------------------------------------------------------------------
+# Logger
+# ---------------------------------------------------------------------
+
+LOGGER = get_logger(__name__, LOG_LEVEL)
+
+
+# ---------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------
+
+def _populate_interim_from_reference():
+    """
+    Populate interim data directory using bundled reference dataset.
+    """
+    if not INTERIM_DATA_DIR.exists():
+        INTERIM_DATA_DIR.mkdir(parents=True)
+
+    for filename in ("patients.csv", "admissions.csv", "diagnoses.csv"):
+        src = REFERENCE_DATA_DIR / filename
+        dst = INTERIM_DATA_DIR / filename
+
+        if not src.exists():
+            raise FileNotFoundError(
+                "Reference data missing: {0}".format(src)
+            )
+
+        copyfile(src, dst)
+
+
 # ---------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------
 
-def run_study(
-    study_config_path,
-    output_dir,
-):
+def run_study(study_config_path, output_dir):
     """
     Run the clinical eligibility engine for a given study.
 
@@ -54,38 +89,39 @@ def run_study(
 
     Returns
     -------
-    Dict[str, Any]
+    dict
         Summary information about the run.
     """
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True)
 
-    # -----------------------------------------------------------------
     # Load study configuration
-    # -----------------------------------------------------------------
     study_config = load_study_config(study_config_path)
 
-    # -----------------------------------------------------------------
-    # Train and score using existing pipeline
-    # -----------------------------------------------------------------
+    # Ensure interim data exists
     if not INTERIM_DATA_DIR.exists():
-        run_ingestion()
+        LOGGER.info(
+            "No interim data found, populating from bundled reference dataset"
+        )
+        _populate_interim_from_reference()
 
+    # Ensure processed features exist
     if not PROCESSED_FEATURES_PATH.exists():
+        LOGGER.info(
+            "Processed feature matrix not found, building features"
+        )
         build_feature_matrix()
-        
+
+    # Train and score
     scored_df = train_models()
 
-    # -----------------------------------------------------------------
     # Apply study-specific heuristics
-    # -----------------------------------------------------------------
     scored_df = apply_age_rules(scored_df, study_config)
     scored_df = apply_stroke_rules(scored_df, study_config)
     scored_df = apply_exclusion_rules(scored_df, study_config)
 
-    # -----------------------------------------------------------------
     # Write outputs
-    # -----------------------------------------------------------------
     output_path = output_dir / "eligibility_results.csv"
     scored_df.to_csv(output_path, index=False)
 
