@@ -30,7 +30,8 @@ from app.engine.heuristics.age_rules import apply_age_rules
 from app.engine.heuristics.stroke_rules import apply_stroke_rules
 from app.engine.heuristics.exclusion_rules import apply_exclusion_rules
 from app.engine.models.train import train_models
-
+from app.engine.features.build_feature_matrix import build_feature_matrix
+from app.engine.config.paths import PROCESSED_FEATURES_PATH
 # ---------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------
@@ -65,6 +66,9 @@ def run_study(
     # -----------------------------------------------------------------
     # Train and score using existing pipeline
     # -----------------------------------------------------------------
+    if not PROCESSED_FEATURES_PATH.exists():
+        build_feature_matrix()
+        
     scored_df = train_models()
 
     # -----------------------------------------------------------------
