@@ -27,14 +27,14 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from config.paths import (
+from app.engine.config.paths import (
     MIMIC_III_DIR,
     MIMIC_IV_DIR,
     ADMISSIONS_INTERIM_PATH,
     INTERIM_DATA_DIR,
     ensure_directories,
 )
-from config.settings import ACTIVE_DATASET, Dataset
+from app.engine.config.settings import ACTIVE_DATASET, Dataset
 
 
 # ---------------------------------------------------------------------

@@ -23,11 +23,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from config.paths import (
+from app.engine.config.paths import (
     MIMIC_III_DIR,
     MIMIC_IV_DIR,
 )
-from config.settings import ACTIVE_DATASET, Dataset
+from app.engine.config.settings import ACTIVE_DATASET, Dataset
 
 
 # ---------------------------------------------------------------------
