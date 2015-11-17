@@ -32,6 +32,8 @@ from app.engine.heuristics.exclusion_rules import apply_exclusion_rules
 from app.engine.models.train import train_models
 from app.engine.features.build_feature_matrix import build_feature_matrix
 from app.engine.config.paths import PROCESSED_FEATURES_PATH
+from app.engine.ingestion.run_ingestion import run_ingestion
+from app.engine.config.paths import INTERIM_DATA_DIR
 # ---------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------
@@ -66,6 +68,9 @@ def run_study(
     # -----------------------------------------------------------------
     # Train and score using existing pipeline
     # -----------------------------------------------------------------
+    if not INTERIM_DATA_DIR.exists():
+        run_ingestion()
+
     if not PROCESSED_FEATURES_PATH.exists():
         build_feature_matrix()
         
