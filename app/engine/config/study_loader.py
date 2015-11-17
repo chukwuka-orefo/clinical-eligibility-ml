@@ -90,16 +90,19 @@ def load_study_config(path):
     if raw_config is None:
         raise ValueError("Study config file is empty")
 
-    # Basic structure check
-    require_columns(
-        raw_config,
-        ["study"],
-        context="Study config",
-    )
+    if not isinstance(raw_config, dict):
+        raise ValueError("Study config must be a YAML mapping")
+
+    # Basic structure check (dict-level, not DataFrame-level)
+    if "study" not in raw_config:
+        raise ValueError(
+            "Study config must contain top-level 'study' section"
+        )
 
     config = _apply_defaults(raw_config, DEFAULT_STUDY_CONFIG)
 
     return config
+
 
 
 # ---------------------------------------------------------------------
