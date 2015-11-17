@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from config.paths import (
+from app.engine.config.paths import (
     ADMISSIONS_INTERIM_PATH,
     PROCESSED_FEATURES_PATH,
     INTERIM_DATA_DIR,
