@@ -24,17 +24,17 @@ from pathlib import Path
 
 import pandas as pd
 
-from config.paths import (
+from app.engine.config.paths import (
     ADMISSIONS_INTERIM_PATH,
     INTERIM_DATA_DIR,
     ensure_directories,
 )
-from config.thresholds import (
+from app.engine.config.thresholds import (
     MIN_ELIGIBLE_AGE,
     MAX_ELIGIBLE_AGE,
     MAX_EXCLUSION_AGE,
 )
-from config.settings import INCLUDE_ELECTIVE_ADMISSIONS
+from app.engine.config.settings import INCLUDE_ELECTIVE_ADMISSIONS
 
 
 # ---------------------------------------------------------------------

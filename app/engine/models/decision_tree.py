@@ -22,8 +22,8 @@ from models.base import (
     ensure_numeric_features,
 )
 from models.logistic_regression import DEFAULT_FEATURE_COLUMNS
-from config.settings import LOG_LEVEL
-from utils.logging import get_logger
+from app.engine.config.settings import LOG_LEVEL
+from app.engine.utils.logging import get_logger
 
 
 LOGGER = get_logger(__name__, LOG_LEVEL)
