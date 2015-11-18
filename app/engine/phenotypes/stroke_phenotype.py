@@ -3,24 +3,7 @@
 stroke_phenotype.py
 
 Derive admission-level stroke phenotype features from diagnosis-level data.
-
-Responsibilities:
-- Aggregate diagnosis-level stroke signals to admission level
-- Compute interpretable stroke phenotype features
-- Preserve uncertainty and signal strength (not binary diagnosis)
-
-This module MUST:
-- Operate at admission (hadm_id) granularity
-- Treat diagnosis codes as signals, not ground truth
-- Produce features usable for heuristics and ML
-
-This module MUST NOT:
-- Apply eligibility rules
-- Perform feature scaling or encoding
-- Train or score models
 """
-
-from pathlib import Path
 
 import pandas as pd
 
@@ -36,6 +19,8 @@ from app.engine.config.paths import (
 
 STROKE_PHENOTYPE_PATH = INTERIM_DATA_DIR / "stroke_phenotype.csv"
 
+STROKE_PREFIXES = ("I61", "I63", "I64")
+
 
 # ---------------------------------------------------------------------
 # Public API
@@ -47,31 +32,26 @@ def derive_stroke_phenotype(
 ):
     """
     Derive stroke phenotype features at admission level.
-
-    Parameters
-    ----------
-    diagnoses_with_codelists_path : Path
-        Path to diagnosis-level table annotated with codelist flags
-        (output of apply_codelists.py).
-    output_path : Optional[Path]
-        Path to write admission-level stroke phenotype table.
-        Defaults to STROKE_PHENOTYPE_PATH.
-
-    Returns
-    -------
-    pd.DataFrame
-        Admission-level stroke phenotype features.
     """
     ensure_directories()
 
     if not diagnoses_with_codelists_path.exists():
         raise FileNotFoundError(
-            "Annotated diagnoses file not found at {}".format(diagnoses_with_codelists_path)
+            "Annotated diagnoses file not found at {0}".format(
+                diagnoses_with_codelists_path
+            )
         )
 
     df = pd.read_csv(diagnoses_with_codelists_path)
-
     _validate_input(df)
+
+    # Derive stroke code flag if not already present
+    if "is_stroke_code" not in df.columns:
+        df = df.copy()
+        df["is_stroke_code"] = (
+            (df["code_system"] == "ICD10") &
+            df["diagnosis_code"].astype(str).str.startswith(STROKE_PREFIXES)
+        )
 
     phenotype_df = _aggregate_to_admission(df)
 
@@ -79,7 +59,6 @@ def derive_stroke_phenotype(
         output_path = STROKE_PHENOTYPE_PATH
 
     phenotype_df.to_csv(output_path, index=False)
-
     return phenotype_df
 
 
@@ -88,21 +67,18 @@ def derive_stroke_phenotype(
 # ---------------------------------------------------------------------
 
 def _validate_input(df):
-    required_columns = {
+    required_columns = set([
         "subject_id",
         "hadm_id",
         "diagnosis_code",
-        "is_stroke_code",
-    }
+        "code_system",
+    ])
 
     missing = required_columns - set(df.columns)
     if missing:
         raise ValueError(
-            "Diagnoses table missing required columns: {}".format(missing)
+            "Diagnoses table missing required columns: {0}".format(missing)
         )
-
-    if not pd.api.types.is_bool_dtype(df["is_stroke_code"]):
-        raise TypeError("is_stroke_code column must be boolean")
 
     if df["hadm_id"].isnull().any():
         raise ValueError("Null hadm_id detected in diagnoses table")
@@ -111,25 +87,13 @@ def _validate_input(df):
 def _aggregate_to_admission(df):
     """
     Aggregate diagnosis-level stroke signals to admission-level features.
-
-    Produces:
-    - stroke_code_count
-    - total_diagnosis_count
-    - stroke_code_density
-    - has_any_stroke_signal
-    - stroke_primary_dx_flag (if seq_num available)
     """
-
-    df = df.copy()
-
-    # Count total diagnoses per admission
     total_dx = (
         df.groupby("hadm_id")
         .size()
         .rename("total_diagnosis_count")
     )
 
-    # Count stroke-related diagnoses per admission
     stroke_dx = (
         df[df["is_stroke_code"]]
         .groupby("hadm_id")
@@ -139,22 +103,24 @@ def _aggregate_to_admission(df):
 
     phenotype = pd.concat([total_dx, stroke_dx], axis=1).fillna(0)
 
-    # Convert counts to int
-    phenotype["total_diagnosis_count"] = phenotype["total_diagnosis_count"].astype(int)
-    phenotype["stroke_code_count"] = phenotype["stroke_code_count"].astype(int)
+    phenotype["total_diagnosis_count"] = (
+        phenotype["total_diagnosis_count"].astype(int)
+    )
+    phenotype["stroke_code_count"] = (
+        phenotype["stroke_code_count"].astype(int)
+    )
 
-    # Stroke density (signal strength proxy)
     phenotype["stroke_code_density"] = (
-        phenotype["stroke_code_count"]
-        / phenotype["total_diagnosis_count"].replace(0, float("nan"))
+        phenotype["stroke_code_count"] /
+        phenotype["total_diagnosis_count"].replace(0, float("nan"))
     ).fillna(0.0)
 
-    # Binary stroke signal flag
-    phenotype["has_any_stroke_signal"] = phenotype["stroke_code_count"] > 0
+    phenotype["has_any_stroke_signal"] = (
+        phenotype["stroke_code_count"] > 0
+    )
 
-    # Optional: primary diagnosis stroke flag (only if seq_num exists)
     if "seq_num" in df.columns:
-        primary_stroke = (
+        primary = (
             df[
                 (df["seq_num"] == 1) &
                 (df["is_stroke_code"])
@@ -164,7 +130,7 @@ def _aggregate_to_admission(df):
             .rename("stroke_primary_dx_flag")
         )
 
-        phenotype = phenotype.join(primary_stroke, how="left")
+        phenotype = phenotype.join(primary, how="left")
         phenotype["stroke_primary_dx_flag"] = (
             phenotype["stroke_primary_dx_flag"]
             .fillna(0)
@@ -174,7 +140,4 @@ def _aggregate_to_admission(df):
     else:
         phenotype["stroke_primary_dx_flag"] = False
 
-    # Reset index to make hadm_id a column
-    phenotype = phenotype.reset_index()
-
-    return phenotype
+    return phenotype.reset_index()

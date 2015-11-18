@@ -3,22 +3,6 @@
 run_engine.py
 
 Orchestration entry point for the clinical eligibility engine.
-
-Purpose:
-- Provide a single function to run the engine end-to-end
-- Load study configuration
-- Execute eligibility pipeline
-- Write outputs for downstream consumption
-
-This module is intentionally UI-agnostic.
-It can be called from:
-- Flask UI
-- batch scripts
-- tests or notebooks (internal use)
-
-This module MUST:
-- Not contain Flask logic
-- Not perform presentation logic
 """
 
 from pathlib import Path
@@ -30,6 +14,7 @@ from app.engine.config.study_loader import load_study_config
 from app.engine.heuristics.age_rules import apply_age_rules
 from app.engine.heuristics.stroke_rules import apply_stroke_rules
 from app.engine.heuristics.exclusion_rules import apply_exclusion_rules
+from app.engine.heuristics.eligibility_label import derive_eligibility_labels
 from app.engine.models.train import train_models
 from app.engine.features.build_feature_matrix import build_feature_matrix
 from app.engine.ingestion.run_ingestion import run_ingestion
@@ -56,9 +41,6 @@ LOGGER = get_logger(__name__, LOG_LEVEL)
 # ---------------------------------------------------------------------
 
 def _interim_data_complete():
-    """
-    Check whether all required interim data files are present.
-    """
     required_files = (
         "patients.csv",
         "admissions.csv",
@@ -73,9 +55,6 @@ def _interim_data_complete():
 
 
 def _phenotypes_complete():
-    """
-    Check whether required phenotype files are present.
-    """
     required_files = (
         "stroke_phenotype.csv",
         "cardiovascular_phenotype.csv",
@@ -88,10 +67,11 @@ def _phenotypes_complete():
     return True
 
 
+def _heuristics_complete():
+    return (INTERIM_DATA_DIR / "eligibility_heuristics.csv").exists()
+
+
 def _populate_interim_from_reference():
-    """
-    Populate interim data directory using bundled reference dataset.
-    """
     if not INTERIM_DATA_DIR.exists():
         INTERIM_DATA_DIR.mkdir(parents=True)
 
@@ -134,17 +114,26 @@ def run_study(study_config_path, output_dir):
         LOGGER.info(
             "Phenotype files missing, generating phenotypes"
         )
-
         derive_stroke_phenotype(
-            diagnoses_path=INTERIM_DATA_DIR / "diagnoses.csv",
-            output_path=INTERIM_DATA_DIR / "stroke_phenotype.csv",
+            INTERIM_DATA_DIR / "diagnoses.csv",
+            INTERIM_DATA_DIR / "stroke_phenotype.csv",
         )
-
         derive_cardiovascular_phenotype(
-            diagnoses_path=INTERIM_DATA_DIR / "diagnoses.csv",
-            output_path=INTERIM_DATA_DIR / "cardiovascular_phenotype.csv",
+            INTERIM_DATA_DIR / "diagnoses.csv",
+            INTERIM_DATA_DIR / "cardiovascular_phenotype.csv",
         )
 
+    # Ensure eligibility heuristics exist
+    if not _heuristics_complete():
+        LOGGER.info(
+            "Eligibility heuristics missing, generating heuristics"
+        )
+        derive_eligibility_labels(
+            admissions_path=INTERIM_DATA_DIR / "admissions.csv",
+            stroke_phenotype_path=INTERIM_DATA_DIR / "stroke_phenotype.csv",
+            cardiovascular_phenotype_path=INTERIM_DATA_DIR / "cardiovascular_phenotype.csv",
+            output_path=INTERIM_DATA_DIR / "eligibility_heuristics.csv",
+        )
 
     # Ensure processed features exist
     if not PROCESSED_FEATURES_PATH.exists():
