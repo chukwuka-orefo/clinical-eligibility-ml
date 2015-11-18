@@ -1,5 +1,0 @@
-subject_id,hadm_id,diagnosis_code,code_system
-1001,2001,I63,ICD10
-1002,2002,I64,ICD10
-1003,2003,Z00,ICD10
-1004,2004,I61,ICD10
