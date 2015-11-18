@@ -40,8 +40,8 @@ from app.engine.config.paths import (
 from app.engine.data.reference import REFERENCE_DATA_DIR
 from app.engine.utils.logging import get_logger
 from app.engine.config.settings import LOG_LEVEL
-from app.engine.phenotypes.stroke_phenotype import build_stroke_phenotype
-from app.engine.phenotypes.cardiovascular_phenotype import build_cardiovascular_phenotype
+from app.engine.phenotypes.stroke_phenotype import derive_stroke_phenotype
+from app.engine.phenotypes.cardiovascular_phenotype import derive_cardiovascular_phenotype
 
 
 # ---------------------------------------------------------------------
@@ -134,8 +134,17 @@ def run_study(study_config_path, output_dir):
         LOGGER.info(
             "Phenotype files missing, generating phenotypes"
         )
-        build_stroke_phenotype()
-        build_cardiovascular_phenotype()
+
+        derive_stroke_phenotype(
+            diagnoses_path=INTERIM_DATA_DIR / "diagnoses.csv",
+            output_path=INTERIM_DATA_DIR / "stroke_phenotype.csv",
+        )
+
+        derive_cardiovascular_phenotype(
+            diagnoses_path=INTERIM_DATA_DIR / "diagnoses.csv",
+            output_path=INTERIM_DATA_DIR / "cardiovascular_phenotype.csv",
+        )
+
 
     # Ensure processed features exist
     if not PROCESSED_FEATURES_PATH.exists():
