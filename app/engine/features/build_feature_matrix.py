@@ -149,7 +149,7 @@ def _join_all(
         "stroke_primary_dx_flag": False,
         "cardiovascular_code_count": 0,
         "cardiovascular_code_density": 0.0,
-        "has_any_cvd_signal": False,
+        "has_any_cardiovascular_signal": False,
     }
 
     for col, default in phenotype_defaults.items():
@@ -184,7 +184,7 @@ def _validate_feature_matrix(df):
         "has_any_stroke_signal",
         "cardiovascular_code_count",
         "cardiovascular_code_density",
-        "has_any_cvd_signal",
+        "has_any_cardiovascular_signal",
     }
 
     missing = required_columns - set(df.columns)
@@ -199,7 +199,7 @@ def _validate_feature_matrix(df):
     bool_columns = [
         "eligibility_heuristic_label",
         "has_any_stroke_signal",
-        "has_any_cvd_signal",
+        "has_any_cardiovascular_signal",
     ]
 
     for col in bool_columns:

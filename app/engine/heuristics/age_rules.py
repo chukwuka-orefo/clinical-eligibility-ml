@@ -27,10 +27,6 @@ from app.engine.config.thresholds import (
     MAX_ELIGIBLE_AGE,
     MAX_EXCLUSION_AGE,
 )
-from app.engine.utils.checks import (
-    require_columns,
-    require_numeric,
-)
 
 
 # ---------------------------------------------------------------------
@@ -44,7 +40,7 @@ def apply_age_rules(df, study_config=None):
     Parameters
     ----------
     df : pd.DataFrame
-        Admission-level DataFrame containing age_at_admission.
+        Admission-level DataFrame. May or may not contain age_at_admission.
     study_config : dict or None
         Optional study configuration.
 
@@ -56,8 +52,7 @@ def apply_age_rules(df, study_config=None):
         - age_excluded
     """
 
-    require_columns(df, ["age_at_admission"], context="Age rules input")
-    require_numeric(df, "age_at_admission", context="Age rules input")
+    df = df.copy()
 
     # Resolve thresholds (study config overrides defaults)
     if study_config and "age" in study_config:
@@ -70,8 +65,17 @@ def apply_age_rules(df, study_config=None):
         max_age = MAX_ELIGIBLE_AGE
         hard_exclude = MAX_EXCLUSION_AGE
 
-    df = df.copy()
+    # -------------------------------------------------------------
+    # Age unavailable: conservative inclusion
+    # -------------------------------------------------------------
+    if "age_at_admission" not in df.columns:
+        df["age_in_range"] = True
+        df["age_excluded"] = False
+        return df
 
+    # -------------------------------------------------------------
+    # Age available: apply Phase A logic
+    # -------------------------------------------------------------
     df["age_in_range"] = (
         (df["age_at_admission"] >= min_age) &
         (df["age_at_admission"] <= max_age)
@@ -104,7 +108,7 @@ def is_age_eligible(age, study_config=None):
     """
 
     if age is None:
-        return False
+        return True  # conservative inclusion
 
     if study_config and "age" in study_config:
         age_cfg = study_config.get("age", {})

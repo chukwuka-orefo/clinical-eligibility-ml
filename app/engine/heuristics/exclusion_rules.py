@@ -2,33 +2,28 @@
 """
 exclusion_rules.py
 
-Conservative exclusion rules for Trial Eligibility ML.
+Apply exclusion heuristics for Trial Eligibility ML.
 
 Purpose:
-- Centralise exclusion logic
-- Read exclusion toggles from study configuration where available
-- Fall back to Phase A defaults when config is absent
+- Apply conservative exclusion logic
+- Respect study configuration where available
+- Preserve Phase A behaviour when data is present
 
 This module MUST:
-- Preserve Phase A behaviour by default
-- Operate at admission-level
-- Return boolean exclusion flags only
+- Operate at admission (hadm_id) level
+- Be transparent and auditable
+- Avoid over-exclusion
 
 This module MUST NOT:
-- Apply inclusion logic
-- Perform any I/O
-- Modify global state
+- Train models
+- Perform feature scaling
+- Derive new features
 """
 
 import pandas as pd
 
 from app.engine.config.thresholds import (
     MAX_EXCLUSION_AGE,
-)
-from app.engine.utils.checks import (
-    require_columns,
-    require_numeric,
-    require_boolean,
 )
 
 
@@ -38,77 +33,47 @@ from app.engine.utils.checks import (
 
 def apply_exclusion_rules(df, study_config=None):
     """
-    Apply conservative exclusion rules.
+    Apply exclusion heuristics.
 
     Parameters
     ----------
     df : pd.DataFrame
-        Admission-level DataFrame containing required fields.
+        Admission-level DataFrame.
     study_config : dict or None
         Optional study configuration.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame with exclusion flags added:
-        - excluded
-        - exclusion_reason
+        DataFrame with exclusion flags applied.
     """
-
-    required_columns = [
-        "age_at_admission",
-        "has_any_stroke_signal",
-    ]
-
-    require_columns(df, required_columns, context="Exclusion rules input")
-    require_numeric(df, "age_at_admission", context="Exclusion rules input")
-    require_boolean(df, "has_any_stroke_signal", context="Exclusion rules input")
-
-    # Resolve exclusion toggles (study config overrides defaults)
-    if study_config and "exclusions" in study_config:
-        excl_cfg = study_config.get("exclusions", {})
-        exclude_without_stroke = excl_cfg.get(
-            "exclude_without_stroke_signal", True
-        )
-        exclude_if_age_above = excl_cfg.get(
-            "exclude_if_age_above_hard_limit", True
-        )
-        hard_exclude_age = study_config.get("age", {}).get(
-            "hard_exclude", MAX_EXCLUSION_AGE
-        )
-    else:
-        exclude_without_stroke = True
-        exclude_if_age_above = True
-        hard_exclude_age = MAX_EXCLUSION_AGE
 
     df = df.copy()
 
-    # Initialise exclusion flags
-    df["excluded"] = False
-    df["exclusion_reason"] = ""
+    # -------------------------------------------------------------
+    # Resolve exclusion threshold
+    # -------------------------------------------------------------
+    if study_config and "age" in study_config:
+        hard_exclude = study_config.get("age", {}).get(
+            "hard_exclude",
+            MAX_EXCLUSION_AGE,
+        )
+    else:
+        hard_exclude = MAX_EXCLUSION_AGE
 
-    # Age-based hard exclusion
-    if exclude_if_age_above:
-        age_excluded = df["age_at_admission"] > hard_exclude_age
+    # -------------------------------------------------------------
+    # Initialise exclusion flag if not present
+    # -------------------------------------------------------------
+    if "excluded" not in df.columns:
+        df["excluded"] = False
 
-        df.loc[age_excluded, "excluded"] = True
-        df.loc[age_excluded, "exclusion_reason"] = "age_above_hard_limit"
-
-    # No stroke signal exclusion
-    if exclude_without_stroke:
-        no_stroke_signal = ~df["has_any_stroke_signal"]
-
-        df.loc[
-            (~df["excluded"]) & no_stroke_signal,
-            "excluded"
-        ] = True
-
-        df.loc[
-            (df["excluded"]) &
-            (df["exclusion_reason"] == "") &
-            no_stroke_signal,
-            "exclusion_reason"
-        ] = "no_stroke_signal"
+    # -------------------------------------------------------------
+    # Age-based exclusion (only if age is available)
+    # -------------------------------------------------------------
+    if "age_at_admission" in df.columns:
+        df["excluded"] = df["excluded"] | (
+            df["age_at_admission"] > hard_exclude
+        )
 
     return df
 
@@ -140,26 +105,18 @@ def is_excluded(
         True if admission should be excluded.
     """
 
-    if study_config and "exclusions" in study_config:
-        excl_cfg = study_config.get("exclusions", {})
-        exclude_without_stroke = excl_cfg.get(
-            "exclude_without_stroke_signal", True
-        )
-        exclude_if_age_above = excl_cfg.get(
-            "exclude_if_age_above_hard_limit", True
-        )
-        hard_exclude_age = study_config.get("age", {}).get(
-            "hard_exclude", MAX_EXCLUSION_AGE
+    if age_at_admission is None:
+        return False
+
+    if study_config and "age" in study_config:
+        hard_exclude = study_config.get("age", {}).get(
+            "hard_exclude",
+            MAX_EXCLUSION_AGE,
         )
     else:
-        exclude_without_stroke = True
-        exclude_if_age_above = True
-        hard_exclude_age = MAX_EXCLUSION_AGE
+        hard_exclude = MAX_EXCLUSION_AGE
 
-    if exclude_if_age_above and age_at_admission > hard_exclude_age:
-        return True
-
-    if exclude_without_stroke and not has_any_stroke_signal:
+    if age_at_admission > hard_exclude:
         return True
 
     return False

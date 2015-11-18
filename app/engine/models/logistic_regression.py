@@ -42,7 +42,7 @@ DEFAULT_FEATURE_COLUMNS = [
     "has_any_stroke_signal",
     "cardiovascular_code_count",
     "cardiovascular_code_density",
-    "has_any_cvd_signal",
+    "has_any_cardiovascular_signal",
 ]
 
 
