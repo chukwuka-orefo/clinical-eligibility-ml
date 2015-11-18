@@ -40,6 +40,8 @@ from app.engine.config.paths import (
 from app.engine.data.reference import REFERENCE_DATA_DIR
 from app.engine.utils.logging import get_logger
 from app.engine.config.settings import LOG_LEVEL
+from app.engine.phenotypes.stroke_phenotype import build_stroke_phenotype
+from app.engine.phenotypes.cardiovascular_phenotype import build_cardiovascular_phenotype
 
 
 # ---------------------------------------------------------------------
@@ -52,6 +54,39 @@ LOGGER = get_logger(__name__, LOG_LEVEL)
 # ---------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------
+
+def _interim_data_complete():
+    """
+    Check whether all required interim data files are present.
+    """
+    required_files = (
+        "patients.csv",
+        "admissions.csv",
+        "diagnoses.csv",
+    )
+
+    for filename in required_files:
+        if not (INTERIM_DATA_DIR / filename).exists():
+            return False
+
+    return True
+
+
+def _phenotypes_complete():
+    """
+    Check whether required phenotype files are present.
+    """
+    required_files = (
+        "stroke_phenotype.csv",
+        "cardiovascular_phenotype.csv",
+    )
+
+    for filename in required_files:
+        if not (INTERIM_DATA_DIR / filename).exists():
+            return False
+
+    return True
+
 
 def _populate_interim_from_reference():
     """
@@ -79,18 +114,6 @@ def _populate_interim_from_reference():
 def run_study(study_config_path, output_dir):
     """
     Run the clinical eligibility engine for a given study.
-
-    Parameters
-    ----------
-    study_config_path : Path
-        Path to study_config.yaml.
-    output_dir : Path
-        Directory where outputs will be written.
-
-    Returns
-    -------
-    dict
-        Summary information about the run.
     """
 
     if not output_dir.exists():
@@ -100,11 +123,19 @@ def run_study(study_config_path, output_dir):
     study_config = load_study_config(study_config_path)
 
     # Ensure interim data exists
-    if not INTERIM_DATA_DIR.exists():
+    if not _interim_data_complete():
         LOGGER.info(
-            "No interim data found, populating from bundled reference dataset"
+            "Interim data incomplete, populating from bundled reference dataset"
         )
         _populate_interim_from_reference()
+
+    # Ensure phenotype files exist
+    if not _phenotypes_complete():
+        LOGGER.info(
+            "Phenotype files missing, generating phenotypes"
+        )
+        build_stroke_phenotype()
+        build_cardiovascular_phenotype()
 
     # Ensure processed features exist
     if not PROCESSED_FEATURES_PATH.exists():
